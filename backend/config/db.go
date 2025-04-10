@@ -33,5 +33,5 @@ func ConnectDB() *mongo.Client {
 }
 
 func GetCollection(collectionName string) *mongo.Collection {
-	return DB.Database("taskDatabase").Collection(collectionName)
+	return DB.Database("schoolDataBase").Collection(collectionName)
 }

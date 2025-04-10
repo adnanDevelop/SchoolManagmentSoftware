@@ -9,8 +9,8 @@ type Subject struct {
 
 type Period struct {
 	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	ClassID   primitive.ObjectID `json:"classId" bson:"classId"`
-	SubjectID primitive.ObjectID `json:"subjectId" bson:"subjectId"`
+	Class     primitive.ObjectID `json:"class" bson:"class"`
+	Subject   primitive.ObjectID `json:"subject" bson:"subject"`
 	Teacher   primitive.ObjectID `json:"teacher" bson:"teacher"`
 	StartTime string             `json:"startTime" bson:"startTime"`
 	EndTime   string             `json:"endTime" bson:"endTime"`

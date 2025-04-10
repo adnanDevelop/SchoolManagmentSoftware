@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"school-software/config"
+	"school-software/routes"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -42,6 +43,9 @@ func main() {
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
 	}))
+
+	// Routes
+	routes.UserRoutes(e)
 
 	// Start server
 	port := os.Getenv("PORT")
