@@ -47,16 +47,16 @@ type User struct {
 	Email              string               `json:"email" bson:"email" validate:"required"`
 	Password           string               `json:"password" bson:"password" validate:"required"`
 	Gender             Gender               `json:"gender" bson:"gender" validate:"required,oneof=male female other"`
-	Role               UserRole             `json:"role" bson:"role" validate:"required,oneof=admin student teacher staff" `
-	Status             bool                 `json:"status" bson:"status"`
+	Role               UserRole             `json:"role" bson:"role,omitempty"`
+	Status             bool                 `json:"status" bson:"status,omitempty"`
 	ProfilePicture     string               `json:"profilePicture" bson:"profilePicture"`
 	AdmissionDate      string               `json:"admissionDate" bson:"admissionDate"`
 	RoleNumber         int                  `json:"roleNumber" bson:"roleNumber,omitempty"`
-	Number             string               `json:"number" bson:"number"`
+	Number             string               `json:"number" bson:"number,omitempty"`
 	ParentDetails      *ParentDetails       `json:"parentDetails,omitempty" bson:"parentDetails,omitempty"`
-	Address            string               `json:"address" bson:"address"`
+	Address            string               `json:"address" bson:"address,omitempty"`
 	BankDetails        *BankDetails         `json:"bankDetails,omitempty" bson:"bankDetails,omitempty"`
-	Description        string               `json:"description" bson:"description"`
+	Description        string               `json:"description" bson:"description,omitempty"`
 	Siblings           []primitive.ObjectID `json:"siblings" bson:"siblings,omitempty"`
 	Class              primitive.ObjectID   `json:"class" bson:"class,omitempty"`
 	Subjects           []string             `json:"subjects,omitempty" bson:"subjects,omitempty"`
