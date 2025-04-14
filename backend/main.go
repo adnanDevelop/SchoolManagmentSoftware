@@ -46,6 +46,7 @@ func main() {
 
 	// Routes
 	routes.UserRoutes(e)
+	routes.SubjectRoutes(e)
 
 	// Start server
 	port := os.Getenv("PORT")

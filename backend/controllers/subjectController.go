@@ -16,6 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// Create subject
 func CreateSubject(c echo.Context) error {
 	var subjectData models.Subject
 	if err := c.Bind(&subjectData); err != nil {
@@ -28,32 +29,39 @@ func CreateSubject(c echo.Context) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// If subject already exist
-	err := config.GetCollection("subjects").FindOne(ctx, bson.M{"name": subjectData.Name}).Decode(&subjectData)
-	if err != nil {
+	// Check if subject already exists
+	err := config.GetCollection("subjects").FindOne(ctx, bson.M{"name": subjectData.Name}).Decode(&models.Subject{})
+	if err == nil {
 		return c.JSON(http.StatusBadRequest, network.BadResponse{
 			Status:  http.StatusBadRequest,
-			Message: "Subject already exist",
+			Message: "Subject already exists",
+		})
+	} else if err != mongo.ErrNoDocuments {
+		return c.JSON(http.StatusBadRequest, network.BadResponse{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
 		})
 	}
 
 	// Create subject
-	_, err = config.GetCollection("subjects").InsertOne(ctx, subjectData)
+	result, err := config.GetCollection("subjects").InsertOne(ctx, subjectData)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, network.BadResponse{
 			Status:  http.StatusBadRequest,
-			Message: "Error while creating subject",
+			Message: err.Error(),
 		})
 	}
+
+	subjectData.ID = result.InsertedID.(primitive.ObjectID)
 
 	return c.JSON(http.StatusOK, network.Response{
 		Status:  http.StatusOK,
 		Message: "Subject created",
 		Data:    subjectData,
 	})
-
 }
 
+// Update subject
 func UpdateSubject(c echo.Context) error {
 	subjectId := c.Param("id")
 	subjectIod, err := primitive.ObjectIDFromHex(subjectId)
@@ -78,6 +86,12 @@ func UpdateSubject(c echo.Context) error {
 
 	// Update subject
 	var subjectData models.Subject
+	if err := c.Bind(&subjectData); err != nil {
+		return c.JSON(http.StatusBadRequest, network.BadResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Invalid request body",
+		})
+	}
 	_, err = config.GetCollection("subjects").UpdateOne(ctx, bson.M{"_id": subjectIod}, bson.M{"$set": subjectData})
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, network.BadResponse{
@@ -86,6 +100,7 @@ func UpdateSubject(c echo.Context) error {
 		})
 	}
 
+	subjectData.ID = subjectIod
 	return c.JSON(http.StatusOK, network.Response{
 		Status:  http.StatusOK,
 		Message: "Subject updated",

@@ -14,7 +14,7 @@ func SubjectRoutes(e *echo.Echo) {
 	// Protected routes
 	protectedRoutes.GET("/all", controllers.ListSubject)
 	protectedRoutes.GET("/:id", controllers.GetSubjectById)
-	protectedRoutes.GET("/create", controllers.CreateSubject)
+	protectedRoutes.POST("/create", controllers.CreateSubject)
 	protectedRoutes.DELETE("/delete/:id", controllers.DeleteSubject)
-	protectedRoutes.PUT("/update-password", controllers.UpdateSubject)
+	protectedRoutes.PUT("/update/:id", controllers.UpdateSubject)
 }
