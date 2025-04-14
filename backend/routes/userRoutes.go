@@ -19,5 +19,5 @@ func UserRoutes(e *echo.Echo) {
 	protectedRoutes.GET("/:id", controllers.GetUserById)
 	protectedRoutes.GET("/all", controllers.ListAllUsers)
 	protectedRoutes.DELETE("/delete/:id", controllers.DeleteUser)
-	// protectedRoutes.PUT("/update", controllers.UpdateUser)
+	protectedRoutes.PUT("/update-password", controllers.UpdatePassword)
 }

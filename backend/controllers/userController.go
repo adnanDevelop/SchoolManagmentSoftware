@@ -126,7 +126,7 @@ func LoginUser(c echo.Context) error {
 	}
 
 	// If user is admin
-	if existingUser.Email == "admin@gmail.com" {
+	if existingUser.Role == "admin" {
 		token, err := utils.GenerateToken(existingUser.ID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, network.BadResponse{
@@ -176,6 +176,73 @@ func LoginUser(c echo.Context) error {
 		Data:    existingUser,
 	})
 
+}
+
+// Update Password
+func UpdatePassword(c echo.Context) error {
+	userId := c.Get("id").(string)
+	UserIod, err := primitive.ObjectIDFromHex(userId)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, network.BadResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Invalid user id",
+		})
+	}
+
+	var bodyData struct {
+		OldPassword string `json:"oldPassword"`
+		NewPassword string `json:"newPassword"`
+	}
+
+	if err := c.Bind(&bodyData); err != nil {
+		return c.JSON(http.StatusBadRequest, network.BadResponse{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var existingUser models.User
+	err = config.GetCollection("users").FindOne(ctx, bson.M{"_id": UserIod}).Decode(&existingUser)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, network.BadResponse{
+			Status:  http.StatusNotFound,
+			Message: "User not found",
+		})
+	}
+
+	if existingUser.Role == "admin" {
+		return c.JSON(http.StatusBadRequest, network.BadResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Admin cannot update password",
+		})
+
+	}
+
+	// Compare and hash new password
+	err = bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(bodyData.OldPassword))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, network.BadResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Invalid password",
+		})
+	}
+
+	err = utils.HashAndUpdatePassword(UserIod, bodyData.NewPassword)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, network.BadResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Error while updating password",
+		})
+	}
+
+	return c.JSON(http.StatusOK, network.ShortResponse{
+		Status:  http.StatusOK,
+		Message: "Password updated successfully",
+	})
 }
 
 // Delete User
