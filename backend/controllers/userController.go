@@ -78,8 +78,6 @@ func RegisterUser(c echo.Context) error {
 	// Generate User Picture
 	user.ProfilePicture = profilePicture
 	user.Password = string(hashPassword)
-	user.ParentDetails.Father.ProfilePicture = fmt.Sprintf("https://avatar.iran.liara.run/public/boy?username=%s", user.ParentDetails.Father.Name)
-	user.ParentDetails.Mother.ProfilePicture = fmt.Sprintf("https://avatar.iran.liara.run/public/girl?username=%s", user.ParentDetails.Mother.Name)
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
