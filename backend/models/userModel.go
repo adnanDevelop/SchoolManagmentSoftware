@@ -36,9 +36,8 @@ type ParentContact struct {
 }
 
 type ParentDetails struct {
-	Father         ParentContact `json:"father" bson:"father"`
-	Mother         ParentContact `json:"mother" bson:"mother"`
-	ProfilePicture string        `json:"profilePicture" bson:"profilePicture"`
+	Father ParentContact `json:"father" bson:"father"`
+	Mother ParentContact `json:"mother" bson:"mother"`
 }
 
 type User struct {

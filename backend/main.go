@@ -22,8 +22,7 @@ func main() {
 		log.Println("✅ .env file loaded")
 	}
 
-	// Initialize MongoDB connection
-	// mongoClient := db.ConnectDB()
+	// Connect to MongoDB
 	mongoClient := config.ConnectDB()
 	defer func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

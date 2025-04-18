@@ -178,6 +178,96 @@ func LoginUser(c echo.Context) error {
 
 }
 
+// Update User
+func UpdateUser(c echo.Context) error {
+	id := c.Param("id")
+	userID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, network.BadResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Invalid user ID",
+		})
+	}
+
+	// Only bind the allowed fields
+	var body struct {
+		Status        bool                 `json:"status"`
+		AdmissionDate string               `json:"admissionDate"`
+		RoleNumber    int                  `json:"roleNumber"`
+		Address       string               `json:"address"`
+		Siblings      []primitive.ObjectID `json:"siblings"`
+		Subjects      []primitive.ObjectID `json:"subjects"`
+		Class         primitive.ObjectID   `json:"class"`
+	}
+
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusBadRequest, network.BadResponse{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	collection := config.GetCollection("users")
+
+	// Check if user exists
+	var existingUser models.User
+	err = collection.FindOne(ctx, bson.M{"_id": userID}).Decode(&existingUser)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, network.BadResponse{
+			Status:  http.StatusNotFound,
+			Message: "User not found",
+		})
+	}
+
+	var profilePicture string
+	if existingUser.Gender == "male" {
+		profilePicture = fmt.Sprintf("https://avatar.iran.liara.run/public/boy?username=%s", existingUser.Name)
+	} else {
+		profilePicture = fmt.Sprintf("https://avatar.iran.liara.run/public/girl?username=%s", existingUser.Name)
+	}
+
+	// Prepare update fields
+	updateFields := bson.M{
+		"status":         body.Status,
+		"admissionDate":  body.AdmissionDate,
+		"roleNumber":     body.RoleNumber,
+		"address":        body.Address,
+		"siblings":       body.Siblings,
+		"subjects":       body.Subjects,
+		"class":          body.Class,
+		"updatedAt":      time.Now(),
+		"profilePicture": profilePicture,
+	}
+
+	// Perform update
+	_, err = collection.UpdateOne(ctx, bson.M{"_id": userID}, bson.M{"$set": updateFields})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, network.BadResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Error updating user",
+		})
+	}
+
+	// Return updated user
+	var newUser models.User
+	err = collection.FindOne(ctx, bson.M{"_id": userID}).Decode(&newUser)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, network.BadResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Error fetching updated user",
+		})
+	}
+
+	return c.JSON(http.StatusOK, network.Response{
+		Status:  http.StatusOK,
+		Message: "User updated successfully",
+		Data:    newUser,
+	})
+}
+
 // Update Password
 func UpdatePassword(c echo.Context) error {
 	userId := c.Get("id").(string)
@@ -325,8 +415,6 @@ func ListAllUsers(c echo.Context) error {
 
 	collection := config.GetCollection("users")
 
-	// Count for pagination
-	countStage := bson.D{{Key: "$match", Value: filter}}
 	totalCount, err := collection.CountDocuments(ctx, filter)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, network.BadResponse{
@@ -335,9 +423,8 @@ func ListAllUsers(c echo.Context) error {
 		})
 	}
 
-	// Aggregation pipeline
 	pipeline := mongo.Pipeline{
-		countStage,
+		{{Key: "$match", Value: filter}},
 		{{Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}}}},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
@@ -363,12 +450,34 @@ func ListAllUsers(c echo.Context) error {
 		})
 	}
 
-	var projects []bson.M
-	if err := cursor.All(ctx, &projects); err != nil {
+	var users []bson.M
+	if err := cursor.All(ctx, &users); err != nil {
 		return c.JSON(http.StatusInternalServerError, network.BadResponse{
 			Status:  http.StatusInternalServerError,
-			Message: "Error while decoding projects",
+			Message: "Error while decoding users",
 		})
+	}
+
+	type Sibling struct {
+		Name           string `bson:"name" json:"name"`
+		Email          string `bson:"email" json:"email"`
+		ProfilePicture string `bson:"profilePicture" json:"profilePicture"`
+	}
+
+	for _, user := range users {
+		if siblingsRaw, ok := user["siblings"].(primitive.A); ok {
+			var filteredSiblings []Sibling
+			for _, s := range siblingsRaw {
+				if sibDoc, ok := s.(bson.M); ok {
+					filteredSiblings = append(filteredSiblings, Sibling{
+						Name:           fmt.Sprintf("%v", sibDoc["name"]),
+						Email:          fmt.Sprintf("%v", sibDoc["email"]),
+						ProfilePicture: fmt.Sprintf("%v", sibDoc["profilePicture"]),
+					})
+				}
+			}
+			user["siblings"] = filteredSiblings
+		}
 	}
 
 	totalPages := int(math.Ceil(float64(totalCount) / float64(limit)))
@@ -376,7 +485,7 @@ func ListAllUsers(c echo.Context) error {
 	return c.JSON(http.StatusOK, network.Response{
 		Status:  http.StatusOK,
 		Message: "Data retreived successfully",
-		Data:    projects,
+		Data:    users,
 		Pagination: &network.Pagination{
 			CurrentPage: page,
 			TotalPage:   totalPages,
