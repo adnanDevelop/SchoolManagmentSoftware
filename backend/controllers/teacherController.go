@@ -124,14 +124,15 @@ func ListTeachers(c echo.Context) error {
 	})
 }
 
-// Get User by id
+
+// Get Teacher ById
 func GetTeacherById(c echo.Context) error {
 	userId := c.Param("id")
 	objectId, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, network.BadResponse{
 			Status:  http.StatusBadRequest,
-			Message: "Invalid project id",
+			Message: "Invalid user ID",
 		})
 	}
 
@@ -139,31 +140,20 @@ func GetTeacherById(c echo.Context) error {
 	defer cancel()
 
 	collection := config.GetCollection("users")
-	cursor, err := collection.Aggregate(ctx,
-		mongo.Pipeline{
-			{{Key: "$match", Value: bson.D{
-				{Key: "_id", Value: objectId},
-			}}},
-		})
 
+	var user bson.M
+	err = collection.FindOne(ctx, bson.M{"_id": objectId, "role": "teacher"}).Decode(&user)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, network.BadResponse{
-			Status:  http.StatusInternalServerError,
-			Message: "Aggregation error",
-		})
-	}
-
-	var results []bson.M
-	if err := cursor.All(ctx, &results); err != nil || len(results) == 0 {
-		return c.JSON(http.StatusNotFound, network.BadResponse{
-			Status:  http.StatusNotFound,
-			Message: "User not found",
+		return c.JSON(http.StatusOK, network.Response{
+			Status:  http.StatusOK,
+			Message: "Teacher retrieved successfully",
+			Data:    []interface{}{},
 		})
 	}
 
 	return c.JSON(http.StatusOK, network.Response{
 		Status:  http.StatusOK,
-		Message: "Data retrieved successfully",
-		Data:    results[0],
+		Message: "Teacher retrieved successfully",
+		Data:    user,
 	})
 }

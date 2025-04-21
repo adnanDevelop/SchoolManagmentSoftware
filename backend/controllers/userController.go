@@ -75,6 +75,10 @@ func RegisterUser(c echo.Context) error {
 		profilePicture = fmt.Sprintf("https://avatar.iran.liara.run/public/girl?username=%s", user.Name)
 	}
 
+	// Generate parent profile picture
+	user.ParentDetails.Father.ProfilePicture = fmt.Sprintf("https://avatar.iran.liara.run/public/boy?username=%s", user.ParentDetails.Father.Name)
+	user.ParentDetails.Mother.ProfilePicture = fmt.Sprintf("https://avatar.iran.liara.run/public/girl?username=%s", user.ParentDetails.Mother.Name)
+
 	// Generate User Picture
 	user.ProfilePicture = profilePicture
 	user.Password = string(hashPassword)
@@ -190,10 +194,10 @@ func UpdateUser(c echo.Context) error {
 	// Only bind the allowed fields
 	var body struct {
 		Status        bool                 `json:"status"`
-		AdmissionDate string               `json:"admissionDate"`
-		RoleNumber    int                  `json:"roleNumber"`
+		AdmissionDate string               `json:"admissionDate,omitempty"`
+		RoleNumber    int                  `json:"roleNumber,omitempty"`
 		Address       string               `json:"address"`
-		Siblings      []primitive.ObjectID `json:"siblings"`
+		Siblings      []primitive.ObjectID `json:"siblings,omitempty"`
 		Subjects      []primitive.ObjectID `json:"subjects"`
 		Class         primitive.ObjectID   `json:"class"`
 	}
@@ -377,6 +381,7 @@ func DeleteUser(c echo.Context) error {
 // List All Users
 func ListAllUsers(c echo.Context) error {
 	search := c.QueryParam("search")
+	role := c.QueryParam("role")
 	pageStr := c.QueryParam("page")
 	limitStr := c.QueryParam("limit")
 
@@ -402,10 +407,14 @@ func ListAllUsers(c echo.Context) error {
 	if search != "" {
 		filter = bson.M{
 			"$or": []bson.M{
-				{"title": bson.M{"$regex": search, "$options": "i"}},
+				{"name": bson.M{"$regex": search, "$options": "i"}},
 				{"description": bson.M{"$regex": search, "$options": "i"}},
 			},
 		}
+	}
+
+	if role != "" {
+		filter["role"] = role
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
