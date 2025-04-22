@@ -17,9 +17,11 @@ type Period struct {
 }
 
 type Class struct {
-	ID           primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
-	Name         string               `json:"name" bson:"name"`
-	Subjects     []primitive.ObjectID `json:"subjects" bson:"subjects"`
-	ClassTeacher primitive.ObjectID   `json:"classTeacher" bson:"classTeacher"`
-	ClassYear    string               `json:"classYear" bson:"classYear"`
+	ID       primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Name     string             `json:"name" bson:"name"`
+	Subjects []string           `json:"subjects" bson:"subjects"`
+	// Teacher   primitive.ObjectID   `json:"teacher" bson:"teacher"`
+	ClassYear string               `json:"classYear" bson:"classYear"`
+	Status    bool                 `json:"status" bson:"status"`
+	Periods   []primitive.ObjectID `json:"periods" bson:"periods"`
 }

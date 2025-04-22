@@ -45,6 +45,7 @@ func main() {
 
 	// Routes
 	routes.UserRoutes(e)
+	routes.ClassRoutes(e)
 	routes.SubjectRoutes(e)
 	routes.TeacherRoutes(e)
 
