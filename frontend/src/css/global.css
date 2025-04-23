@@ -1,0 +1,41 @@
+/* @import url("https://fonts.googleapis.com/css2?family=Oxanium:wght@200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"); */
+
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+
+  body,
+  html {
+    @apply !overflow-x-hidden !font-poppin !bg-white;
+  }
+
+  .transitions {
+    @apply transition-all duration-500 ease-in-out;
+  }
+
+  .padding-inline {
+    @apply md:px-[80px] xl:px-[120px] sm:px-[40px] px-[20px];
+  }
+
+  .padding-block {
+    @apply md:py-[100px] py-[80px];
+  }
+
+  .primary-btn {
+    @apply h-[40px] rounded-md text-white font-poppin font-medium capitalize text-[13px] transitions hover:scale-[1.05] bg-primary;
+  }
+
+  .secondary-btn {
+    @apply h-[40px] rounded-md text-gray-400 font-poppin font-medium capitalize text-[13px] bg-gray-700;
+  }
+
+  .primary-btn-outline {
+    @apply h-[40px] rounded-md text-white font-poppin font-medium capitalize text-[13px] transitions hover:scale-[1.05] bg-[#05966835] border border-green hover:bg-green;
+  }
+}
