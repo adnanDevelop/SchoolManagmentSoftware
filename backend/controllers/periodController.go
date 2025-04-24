@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"net/http"
 	"school-software/config"
@@ -220,6 +221,18 @@ func ListPeriod(c echo.Context) error {
 		{{Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}}}},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "classes"},
+			{Key: "localField", Value: "class"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "class"},
+		}}},
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "users"},
+			{Key: "localField", Value: "teacher"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "teacher"},
+		}}},
 	}
 
 	cursor, err := collection.Aggregate(ctx, pipeline)
@@ -236,6 +249,28 @@ func ListPeriod(c echo.Context) error {
 			Status:  http.StatusInternalServerError,
 			Message: "Error while decoding periods",
 		})
+	}
+
+	type Teacher struct {
+		Name           string `bson:"name" json:"name"`
+		Email          string `bson:"email" json:"email"`
+		ProfilePicture string `bson:"profilePicture" json:"profilePicture"`
+	}
+
+	for _, teachData := range periods {
+		if siblingsRaw, ok := teachData["teacher"].(primitive.A); ok {
+			var filterTeacher []Teacher
+			for _, s := range siblingsRaw {
+				if sibDoc, ok := s.(bson.M); ok {
+					filterTeacher = append(filterTeacher, Teacher{
+						Name:           fmt.Sprintf("%v", sibDoc["name"]),
+						Email:          fmt.Sprintf("%v", sibDoc["email"]),
+						ProfilePicture: fmt.Sprintf("%v", sibDoc["profilePicture"]),
+					})
+				}
+			}
+			teachData["teacher"] = filterTeacher
+		}
 	}
 
 	totalPages := int(math.Ceil(float64(totalCount) / float64(limit)))
@@ -255,33 +290,80 @@ func ListPeriod(c echo.Context) error {
 
 // Get Period By Id
 func GetPeriodById(c echo.Context) error {
-	classId := c.Param("id")
-	classObjId, err := primitive.ObjectIDFromHex(classId)
+	periodId := c.Param("id")
+	ObjPeriodId, err := primitive.ObjectIDFromHex(periodId)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, network.BadResponse{
 			Status:  http.StatusBadRequest,
-			Message: "Invalid class id",
+			Message: "Invalid period id",
 		})
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// find class
-	var findClass models.Class
-	err = config.GetCollection("classes").FindOne(ctx, bson.M{"_id": classObjId}).Decode(&findClass)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, network.BadResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Class not found",
+	collection := config.GetCollection("periods")
+	cursor, err := collection.Aggregate(ctx,
+		mongo.Pipeline{
+			{{Key: "$match", Value: bson.D{
+				{Key: "_id", Value: ObjPeriodId},
+			}}},
+			{{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "classes"},
+				{Key: "localField", Value: "class"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "class"},
+			}}},
+			{{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "users"},
+				{Key: "localField", Value: "teacher"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "teacher"},
+			}}},
 		})
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, network.BadResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Aggregation error",
+		})
+	}
+
+	var results []bson.M
+	if err := cursor.All(ctx, &results); err != nil || len(results) == 0 {
+		return c.JSON(http.StatusNotFound, network.BadResponse{
+			Status:  http.StatusNotFound,
+			Message: "Period not found",
+		})
+	}
+
+	type Teacher struct {
+		Name           string `bson:"name" json:"name"`
+		Email          string `bson:"email" json:"email"`
+		ProfilePicture string `bson:"profilePicture" json:"profilePicture"`
+	}
+
+	for _, teachData := range results {
+		if siblingsRaw, ok := teachData["teacher"].(primitive.A); ok {
+			var filterTeacher []Teacher
+			for _, s := range siblingsRaw {
+				if sibDoc, ok := s.(bson.M); ok {
+					filterTeacher = append(filterTeacher, Teacher{
+						Name:           fmt.Sprintf("%v", sibDoc["name"]),
+						Email:          fmt.Sprintf("%v", sibDoc["email"]),
+						ProfilePicture: fmt.Sprintf("%v", sibDoc["profilePicture"]),
+					})
+				}
+			}
+			teachData["teacher"] = filterTeacher
+		}
 	}
 
 	return c.JSON(http.StatusOK, network.Response{
 		Status:  http.StatusOK,
 		Message: "Data retreived successfully",
-		Data:    findClass,
+		Data:    results[0],
 	})
 
 }
