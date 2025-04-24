@@ -2,6 +2,8 @@
 import { Outlet, useRoutes } from "react-router-dom";
 import { ProtectedRoute, PublicRoute } from "@/utils/RootAuth";
 
+import Layout from "@/components/layouts/Layout";
+
 // Main Layout
 
 // Auth pages
@@ -16,7 +18,11 @@ export const Routes = () => {
   return useRoutes([
     {
       path: "/",
-      element: <ProtectedRoute>{/* <Layout /> */}</ProtectedRoute>,
+      element: (
+        <ProtectedRoute>
+          <Layout />
+        </ProtectedRoute>
+      ),
       children: [
         // {
         //   index: true,
