@@ -4,9 +4,12 @@ import { ProtectedRoute, PublicRoute } from "@/utils/RootAuth";
 
 import Layout from "@/components/layouts/Layout";
 
-// Main Layout
-
 // Auth pages
+import Login from "@/modules/auth/login/Login";
+import ForgetPassword from "@/modules/auth/forgetPassword/ForgetPassword";
+
+// Main Layout
+import TeacherDashboard from "@/modules/dashboards/teacherDashboard/TeacherDashboard";
 
 //Main Pages
 
@@ -24,10 +27,10 @@ export const Routes = () => {
         </ProtectedRoute>
       ),
       children: [
-        // {
-        //   index: true,
-        //   element: <Dashboard />,
-        // },
+        {
+          index: true,
+          element: <TeacherDashboard />,
+        },
         // {
         //   path: "/project",
         //   element: <Project />,
@@ -41,14 +44,14 @@ export const Routes = () => {
         </PublicRoute>
       ),
       children: [
-        // {
-        //   path: "login",
-        //   element: <Login />,
-        // },
-        // {
-        //   path: "register",
-        //   element: <Register />,
-        // },
+        {
+          path: "login",
+          element: <Login />,
+        },
+        {
+          path: "forget-password",
+          element: <ForgetPassword />,
+        },
       ],
     },
     // {

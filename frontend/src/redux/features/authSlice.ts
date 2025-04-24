@@ -3,7 +3,8 @@ import { setCookie, removeCookie, getCookie } from "../../utils/cookie";
 
 const initialState = {
   token: getCookie("token") || "",
-  isAuthenticated: !!getCookie("token"),
+  // isAuthenticated: !!getCookie("token"),
+  isAuthenticated: false,
   user: JSON.parse(getCookie("userData") || "{}"),
 };
 const authSlice = createSlice({

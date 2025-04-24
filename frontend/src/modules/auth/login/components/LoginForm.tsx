@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import {
   Card,
   Input,
@@ -9,18 +8,16 @@ import {
   CardContent,
   CardDescription,
 } from "@/components/ui";
+import { Link } from "react-router-dom";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+export function LoginForm() {
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+    <div className="flex flex-col gap-6 ">
+      <Card className="bg-[#1b1632] border-none">
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Welcome</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Please enter your details to sign in
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -32,33 +29,25 @@ export function LoginForm({
                   id="email"
                   type="email"
                   placeholder="m@example.com"
+                  className="border-[#0f0c1c] border focus:outline-none focus:ring-0 focus:shadow-none"
                   required
                 />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
+                  <Link
+                    to="forget-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Forgot your password?
-                  </a>
+                  </Link>
                 </div>
                 <Input id="password" type="password" required />
               </div>
               <Button type="submit" className="w-full">
                 Login
               </Button>
-              <Button variant="outline" className="w-full">
-                Login with Google
-              </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <a href="#" className="underline underline-offset-4">
-                Sign up
-              </a>
             </div>
           </form>
         </CardContent>
