@@ -187,6 +187,9 @@ func ListFee(c echo.Context) error {
 		}
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	collection := config.GetCollection("users")
 
 	totalCount, err := collection.CountDocuments(ctx, filter)
