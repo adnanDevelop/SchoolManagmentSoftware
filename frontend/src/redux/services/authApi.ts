@@ -9,24 +9,6 @@ const authApi = createApi({
   }),
   tagTypes: ["users"],
   endpoints: (builder) => ({
-    // Register User
-    registerUser: builder.mutation({
-      query: (payload) => ({
-        url: "/register",
-        method: "POST",
-        body: payload.body,
-      }),
-      invalidatesTags: ["users"],
-    }),
-    deleteUser: builder.mutation({
-      query: (payload) => ({
-        url: `/delete/${payload.id}`,
-        method: "DELETE",
-      }),
-
-      invalidatesTags: ["users"],
-    }),
-
     // Login User
     loginUser: builder.mutation({
       query: (payload) => ({
@@ -34,6 +16,16 @@ const authApi = createApi({
         method: "POST",
         body: payload.body,
       }),
+    }),
+
+    // Delete User
+    deleteUser: builder.mutation({
+      query: (payload) => ({
+        url: `/delete/${payload.id}`,
+        method: "DELETE",
+      }),
+
+      invalidatesTags: ["users"],
     }),
 
     // Logout User
@@ -44,7 +36,7 @@ const authApi = createApi({
       }),
     }),
 
-    // Get all users
+    // List all users
     getAllUsers: builder.query({
       query: () => ({
         url: `/all`,
@@ -60,7 +52,6 @@ export const {
   useLoginUserMutation,
   useDeleteUserMutation,
   useLogoutUserMutation,
-  useRegisterUserMutation,
 } = authApi;
 
 export default authApi;
